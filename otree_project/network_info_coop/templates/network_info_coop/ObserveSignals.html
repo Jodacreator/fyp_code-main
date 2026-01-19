@@ -1,0 +1,58 @@
+{% extends "global/Page.html" %}
+{% block content %}
+
+<h3>Round {{ player.round_number }}: Signals</h3>
+
+<!-- Network description -->
+<p>
+  <b>Network structure:</b>
+  {% if network_type == 'hub' %}
+    Hub-and-Spoke (centralised information)
+  {% else %}
+    Ring (decentralised information)
+  {% endif %}
+</p>
+
+<!-- Role indicator -->
+<div style="margin: 12px 0; padding: 10px; background: #f8f9fa; border-left: 4px solid #007bff;">
+  <b>Your role:</b>
+  {% if is_hub %}
+    <span style="color:#007bff;">Central player (Hub)</span>
+  {% else %}
+    <span style="color:#555;">Peripheral player (Spoke)</span>
+  {% endif %}
+</div>
+
+<!-- Explanation -->
+<p class="text-muted" style="margin-bottom: 10px;">
+  The signals below are automatically shown to you by the network.
+  No player can change, hide, or manipulate these signals.
+</p>
+
+<!-- Signals table -->
+<table class="table table-sm">
+  <thead>
+    <tr>
+      <th>Source</th>
+      <th>Signal</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for item in observed_signals %}
+      <tr>
+        <td>
+          {% if item.source == 'You' %}
+            <b>{{ item.source }}</b>
+          {% else %}
+            {{ item.source }}
+          {% endif %}
+        </td>
+        <td><b>{{ item.signal }}</b></td>
+      </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+<button class="btn btn-primary">Continue</button>
+
+{% endblock %}

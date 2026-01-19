@@ -1,0 +1,13 @@
+{% extends "global/Page.html" %}
+{% block content %}
+
+<h3>Round {{ player.round_number }}: Results</h3>
+
+<p>You contributed: <b>{{ player.contribute }}</b></p>
+<p>Your contribution amount: <b>{{ contribution_amount }}</b></p>
+<p>Total group contribution: <b>{{ total_contribution }}</b></p>
+<p>Your payoff this round: <b>{{ player.payoff }}</b></p>
+
+<button class="btn btn-primary">Next</button>
+
+{% endblock %}
