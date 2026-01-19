@@ -29,19 +29,20 @@ class C(BaseConstants):
     STATE_LOW = "LOW"
     SIGNAL_ACCURACY = 0.70  # P(signal = true_state)
 
-    # Prior is 50/50 by design (informational only; not needed for payoffs)
+    # Prior
     PRIOR_HIGH = 0.5
 
 
 class Subsession(BaseSubsession):
     def creating_session(self):
         for g in self.get_groups():
-            # Treatment: static network
+
+            # Treatment assignment
             g.network_type = (self.session.config.get('network_type', 'ring') or 'ring').strip().lower()
             if g.network_type not in ('ring', 'hub'):
                 g.network_type = 'ring'
 
-            # Fixed state across all rounds
+            # Fixed hidden state
             if self.round_number == 1:
                 g.state = random.choice([C.STATE_HIGH, C.STATE_LOW])
             else:
@@ -49,9 +50,15 @@ class Subsession(BaseSubsession):
 
             g.mpcr = C.MPCR_HIGH if g.state == C.STATE_HIGH else C.MPCR_LOW
 
-            # Per-round i.i.d. private signals for all players
+            # Draw private signals
             for p in g.get_players():
-                p.signal = p.draw_noisy_signal(true_state=g.state, accuracy=C.SIGNAL_ACCURACY)
+                p.signal = p.draw_noisy_signal(
+                    true_state=g.state,
+                    accuracy=C.SIGNAL_ACCURACY
+                )
+
+            # 🔁 Hub updates posterior AFTER signals are drawn
+            g.update_hub_posterior()
 
 
 class Group(BaseGroup):
@@ -61,30 +68,68 @@ class Group(BaseGroup):
 
     total_contribution = models.CurrencyField(initial=0)
 
+    # 🔊 Hub broadcasted posterior
+    hub_posterior = models.FloatField(initial=C.PRIOR_HIGH)
+
     def hub_player(self):
-        # Hub fixed as player 1 for now (fine for trial runs; can randomise later)
+        # Hub fixed as player 1
         return self.get_player_by_id(1)
+
+    def update_hub_posterior(self):
+        if self.network_type != 'hub':
+            return
+
+        q = C.SIGNAL_ACCURACY
+
+        # Prior
+        if self.round_number == 1:
+            prior = C.PRIOR_HIGH
+        else:
+            prior = self.in_round(self.round_number - 1).hub_posterior
+
+        # Hub observes all signals this round
+        signals = [p.signal for p in self.get_players()]
+        k = signals.count(C.STATE_HIGH)
+        n = len(signals)
+
+        # Likelihoods
+        like_high = (q ** k) * ((1 - q) ** (n - k))
+        like_low = ((1 - q) ** k) * (q ** (n - k))
+
+        # Bayes rule
+        self.hub_posterior = (prior * like_high) / (
+            prior * like_high + (1 - prior) * like_low
+        )
 
     def compute_payoffs(self):
         players = self.get_players()
         self.total_contribution = sum(p.contribution_amount() for p in players)
 
         for p in players:
-            p.payoff = C.ENDOWMENT - p.contribution_amount() + cu(self.mpcr) * self.total_contribution
+            p.payoff = (
+                C.ENDOWMENT
+                - p.contribution_amount()
+                + cu(self.mpcr) * self.total_contribution
+            )
 
 
 class Player(BasePlayer):
-    # Decision: binary contribution
+
+    # Decision
     contribute = models.BooleanField(
         choices=[[True, "Contribute"], [False, "Do not contribute"]],
         widget=widgets.RadioSelect,
         label="Contribution decision"
     )
 
-    # Non-incentivized belief (0–100): never shown to others
-    belief = models.IntegerField(min=0, max=100, label="Belief that the state is HIGH (0–100)")
+    # Belief (not shared)
+    belief = models.IntegerField(
+        min=0,
+        max=100,
+        label="Belief that the state is HIGH (0–100)"
+    )
 
-    # Private signal each round
+    # Private signal
     signal = models.StringField()
 
     def contribution_amount(self):
@@ -101,7 +146,10 @@ class Player(BasePlayer):
         pid = self.id_in_group
         left_id = n if pid == 1 else pid - 1
         right_id = 1 if pid == n else pid + 1
-        return [self.group.get_player_by_id(left_id), self.group.get_player_by_id(right_id)]
+        return [
+            self.group.get_player_by_id(left_id),
+            self.group.get_player_by_id(right_id)
+        ]
 
     def draw_noisy_signal(self, true_state: str, accuracy: float):
         if random.random() < accuracy:
@@ -109,51 +157,54 @@ class Player(BasePlayer):
         return C.STATE_LOW if true_state == C.STATE_HIGH else C.STATE_HIGH
 
     # -----------------------
-    # Mechanical information exposure (signals only)
+    # Mechanical information exposure
     # -----------------------
     def signals_observed_this_round(self):
         """
-        Returns a list of dicts: [{'source': <label>, 'signal': 'HIGH'/'LOW'}, ...]
+        Returns a list of dicts:
+        [{'source': <label>, 'signal': <value>}]
 
-        HUB treatment:
-          - Hub observes ALL players' signals (including own)
-          - Spokes observe ONLY:
-              • their own private signal
-              • the hub's signal
+        HUB:
+          - Observes all players' signals
 
-        RING treatment:
-          - Each player observes:
-              • own signal
-              • left neighbor signal
-              • right neighbor signal
+        SPOKES:
+          - Observe own signal
+          - (Posterior is shown via template, not here)
+
+        RING:
+          - Observe own + two neighbors
         """
         g = self.group
         r = self.round_number
 
         observed = []
 
-        # Always observe own signal
-        me = self.in_round(r)
-        observed.append({'source': 'You', 'signal': me.signal})
+        # Own signal
+        observed.append({
+            'source': 'You',
+            'signal': self.in_round(r).signal
+        })
 
-        # Ring network: see 2 neighbors
+        # Ring
         if g.network_type == 'ring':
             for nb in self.ring_neighbors():
                 nb_r = nb.in_round(r)
-                observed.append({'source': f'Neighbor {nb_r.id_in_group}', 'signal': nb_r.signal})
+                observed.append({
+                    'source': f'Neighbor {nb_r.id_in_group}',
+                    'signal': nb_r.signal
+                })
             return observed
 
-        # Hub-and-spoke network
-        hub = g.hub_player().in_round(r)
-
+        # Hub-and-spoke
         if self.is_hub():
-            # Hub sees everyone else
             for p in g.get_players():
                 pr = p.in_round(r)
                 if pr.id_in_group != self.id_in_group:
-                    observed.append({'source': f'Player {pr.id_in_group}', 'signal': pr.signal})
+                    observed.append({
+                        'source': f'Player {pr.id_in_group}',
+                        'signal': pr.signal
+                    })
             return observed
 
-        # Spoke: sees hub only (no other spokes)
-        observed.append({'source': 'Hub', 'signal': hub.signal})
+        # Spoke: only own signal (hub posterior shown separately)
         return observed

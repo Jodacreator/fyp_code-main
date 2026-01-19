@@ -30,10 +30,11 @@ class ObserveSignals(Page):
         observed = p.signals_observed_this_round()
 
         return dict(
-            network_type=self.group.network_type,
-            observed_signals=observed,
-            is_hub=p.is_hub(),  # IMPORTANT: required by ObserveSignals.html
-        )
+    network_type=self.group.network_type,
+    observed_signals=observed,
+    is_hub=p.is_hub(),
+    hub_posterior=self.group.hub_posterior,
+)
 
 
 class Decide(Page):
