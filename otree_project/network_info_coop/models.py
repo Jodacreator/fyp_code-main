@@ -27,7 +27,7 @@ class C(BaseConstants):
     # Hidden state + signals
     STATE_HIGH = "HIGH"
     STATE_LOW = "LOW"
-    SIGNAL_ACCURACY = 0.70  # P(signal = true_state)
+    SIGNAL_ACCURACY = 0.55  # P(signal = true_state)
 
     # Prior
     PRIOR_HIGH = 0.5
@@ -69,7 +69,10 @@ class Group(BaseGroup):
     total_contribution = models.CurrencyField(initial=0)
 
     # 🔊 Hub broadcasted posterior
-    hub_posterior = models.FloatField(initial=C.PRIOR_HIGH)
+    hub_posterior = models.FloatField(
+        initial=C.PRIOR_HIGH,
+        decimal_places=6
+    )
 
     def hub_player(self):
         # Hub fixed as player 1
