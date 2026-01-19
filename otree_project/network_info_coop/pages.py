@@ -33,8 +33,9 @@ class ObserveSignals(Page):
     network_type=self.group.network_type,
     observed_signals=observed,
     is_hub=p.is_hub(),
-    hub_posterior=self.group.hub_posterior,
+    hub_posterior=f"{self.group.hub_posterior:.2f}",
 )
+
 
 
 class Decide(Page):
