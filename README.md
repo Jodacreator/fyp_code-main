@@ -121,7 +121,7 @@ This serves as the decentralised benchmark.
 * **Spokes observe:**
 
   * Their own signal
-  * The hub’s signal
+  * The hub’s broadcast of the bayensian posterior probability of the True signal being High/Low
   * *No signals from other spokes*
 
 There is **no spoke-to-spoke information flow**, direct or indirect.
