@@ -50,7 +50,7 @@ This study explores how different network structures affect cooperation in group
     <ul style="margin-bottom: 0;">
       <li><b>Player 1</b> is the <b>hub</b> (central player).</li>
       <li>The hub observes <b>all players’ signals</b> each round.</li>
-      <li>Spokes (Players 2–{{ n }}) observe <b>their own</b> signal and the <b>hub’s</b> signal only.</li>
+      <li>Spokes (Players 2–{{ n }}) observe <b>their own</b> signal and the <b>hub’s signal</b>.</li>
       <li>Spokes do <b>not</b> observe other spokes’ signals.</li>
     </ul>
   </div>
@@ -64,14 +64,14 @@ This study explores how different network structures affect cooperation in group
 
 <h5>3) Decisions each round</h5>
 <ul>
-  <li>After viewing signals, you will decide whether to <b>contribute</b> to a group project.</li>
+  <li>After viewing signals, you will choose a <b>contribution amount</b> between <b>{{ min_contrib }}</b> and <b>{{ max_contrib }}</b>.</li>
   <li>You will also report your <b>belief (0–100)</b> that the state is HIGH.</li>
   <li><b>Beliefs do not affect payoffs</b> and are <b>not shown</b> to other players.</li>
 </ul>
 
 <div style="margin: 12px 0; padding: 10px; background: #f8f9fa; border-left: 4px solid #6c757d;">
   <b>Payoff reminder:</b> Each round you receive an endowment of <b>{{ endowment }}</b>.
-  If you contribute, you contribute <b>{{ contrib_amt }}</b>.
+  You may contribute any amount from <b>{{ min_contrib }}</b> to <b>{{ max_contrib }}</b>.
 </div>
 
 <button class="btn btn-primary">Continue</button>

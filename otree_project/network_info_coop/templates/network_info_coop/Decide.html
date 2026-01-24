@@ -3,7 +3,11 @@
 
 <h3>Round {{ player.round_number }}: Decision</h3>
 
-<p>Endowment: {{ endowment }}. If you contribute, you contribute {{ contrib_amt }}.</p>
+<p>
+  Endowment: <b>{{ endowment }}</b>.
+  Choose how much to contribute (between <b>{{ min_contrib }}</b> and <b>{{ max_contrib }}</b>),
+  and then report your belief.
+</p>
 
 {{ formfields }}
 

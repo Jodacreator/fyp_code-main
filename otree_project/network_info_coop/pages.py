@@ -12,40 +12,38 @@ class Instructions(Page):
             n=C.PLAYERS_PER_GROUP,
             num_rounds=C.NUM_ROUNDS,
             endowment=C.ENDOWMENT,
-            contrib_amt=C.CONTRIBUTION_AMOUNT,
+            min_contrib=C.MIN_CONTRIBUTION,
+            max_contrib=C.MAX_CONTRIBUTION,
             signal_accuracy=C.SIGNAL_ACCURACY,
-            hub_is_player1=True,
         )
 
 
 class ObserveSignals(Page):
     """
     Round timing:
-      1) private signal
+      1) private signal drawn by system
       2) observation (mechanical sharing)
       3) contribution + belief
     """
     def vars_for_template(self):
         p = self.player
         observed = p.signals_observed_this_round()
-
         return dict(
-    network_type=self.group.network_type,
-    observed_signals=observed,
-    is_hub=p.is_hub(),
-    hub_posterior=f"{self.group.hub_posterior:.2f}",
-)
-
+            network_type=self.group.network_type,
+            observed_signals=observed,
+            is_hub=p.is_hub(),
+        )
 
 
 class Decide(Page):
     form_model = 'player'
-    form_fields = ['contribute', 'belief']
+    form_fields = ['contribution', 'belief']
 
     def vars_for_template(self):
         return dict(
             endowment=C.ENDOWMENT,
-            contrib_amt=C.CONTRIBUTION_AMOUNT,
+            min_contrib=C.MIN_CONTRIBUTION,
+            max_contrib=C.MAX_CONTRIBUTION,
         )
 
 
@@ -57,12 +55,21 @@ class Results(Page):
     def vars_for_template(self):
         p = self.player
         g = self.group
+
+        # Contribution grid (id_in_group -> contribution)
+        contrib_rows = []
+        for pl in g.get_players():
+            contrib_rows.append(dict(
+                pid=pl.id_in_group,
+                is_you=(pl.id_in_group == p.id_in_group),
+                contrib=pl.contribution
+            ))
+
         return dict(
-            contributed=p.contribute,
-            contribution_amount=p.contribution_amount(),
+            your_contribution=p.contribution,
             total_contribution=g.total_contribution,
             payoff=p.payoff,
-            # Minimal feedback (no MPCR, no state, no histories)
+            contrib_rows=contrib_rows,
         )
 
 
