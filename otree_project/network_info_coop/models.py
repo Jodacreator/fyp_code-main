@@ -28,7 +28,7 @@ class C(BaseConstants):
     # Hidden state + signals
     STATE_HIGH = "HIGH"
     STATE_LOW = "LOW"
-    SIGNAL_ACCURACY = 0.55  # P(signal = true_state)
+    SIGNAL_ACCURACY = 0.70  # P(signal = true_state)
 
 
 class Subsession(BaseSubsession):
