@@ -1,4 +1,3 @@
-```md
 # Network Information & Cooperation Experiment (FYP)
 
 ## Overview
@@ -164,4 +163,4 @@ The design is intentionally minimal to ensure:
 - participant clarity
 - clean identification
 - feasibility for lab/classroom deployment
-```
+
