@@ -66,13 +66,16 @@ class Group(BaseGroup):
 
     def compute_payoffs(self):
         players = self.get_players()
-        self.total_contribution = sum([p.contribution for p in players])
+        self.total_contribution = sum(p.contribution for p in players)
+
+        # IMPORTANT: multiply as float first, then convert once to Currency
+        total_float = float(self.total_contribution)
 
         for p in players:
             p.payoff = (
                 C.ENDOWMENT
                 - p.contribution
-                + cu(self.mpcr) * self.total_contribution
+                + cu(self.mpcr * total_float)
             )
 
 
