@@ -18,9 +18,30 @@ class Instructions(Page):
         )
 
 
+class ReviewLastRound(Page):
+    """
+    Shows private feedback from the previous round at the START of each new round.
+    Displayed from Round 2 onward.
+    """
+    def is_displayed(self):
+        return self.round_number > 1
+
+    def vars_for_template(self):
+        prev_p = self.player.in_round(self.round_number - 1)
+        prev_g = self.group.in_round(self.round_number - 1)
+
+        return dict(
+            prev_round=self.round_number - 1,
+            prev_contribution=prev_p.contribution,
+            prev_payoff=prev_p.payoff,
+            prev_total_contribution=prev_g.total_contribution,  # optional
+        )
+
+
 class ObserveSignals(Page):
     """
     Round timing:
+      0) (Round>=2) review last round
       1) private signal drawn by system
       2) observation (mechanical sharing)
       3) contribution + belief
@@ -56,7 +77,6 @@ class Results(Page):
         p = self.player
         g = self.group
 
-        # Contribution grid (id_in_group -> contribution)
         contrib_rows = []
         for pl in g.get_players():
             contrib_rows.append(dict(
@@ -75,6 +95,7 @@ class Results(Page):
 
 page_sequence = [
     Instructions,
+    ReviewLastRound,
     ObserveSignals,
     Decide,
     ResultsWaitPage,

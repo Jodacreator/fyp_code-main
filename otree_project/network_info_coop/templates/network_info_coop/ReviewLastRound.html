@@ -1,0 +1,31 @@
+{% extends "global/Page.html" %}
+{% block content %}
+
+<h3>Round {{ player.round_number }}: Review of Round {{ prev_round }}</h3>
+
+<p>This is a quick recap of your previous round outcome.</p>
+
+<table class="table table-sm" style="max-width: 520px;">
+  <tbody>
+    <tr>
+      <th>Your contribution (Round {{ prev_round }})</th>
+      <td><b>{{ prev_contribution }}</b></td>
+    </tr>
+    <tr>
+      <th>Your payoff (Round {{ prev_round }})</th>
+      <td><b>{{ prev_payoff }}</b></td>
+    </tr>
+    <tr>
+      <th>Total group contribution (Round {{ prev_round }})</th>
+      <td><b>{{ prev_total_contribution }}</b></td>
+    </tr>
+  </tbody>
+</table>
+
+<p class="text-muted">
+  Reminder: Belief reports do not affect payoffs and are not shared.
+</p>
+
+<button class="btn btn-primary">Continue</button>
+
+{% endblock %}
