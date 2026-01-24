@@ -1,196 +1,167 @@
+```md
 # Network Information & Cooperation Experiment (FYP)
 
 ## Overview
 
-This repository contains the oTree implementation for a Final Year Project (FYP) experiment studying how **static network structures** shape **information aggregation, belief formation, and cooperation** in a repeated social dilemma.
+This repository contains the **oTree implementation** for a Final Year Project (FYP) experiment studying how **static network structures** affect **information exposure, beliefs, and cooperation** in a repeated group decision environment.
 
 The experiment compares two canonical network topologies:
 
-* **Ring network (decentralised)**
-* **Hub-and-Spoke network (centralised)**
+- **Ring network (decentralised)**
+- **Hub-and-Spoke network (centralised)**
 
-while holding the **game, incentives, and decision environment constant** across treatments.
+while keeping the **game, incentives, and decision tasks identical** across treatments.
 
-The design isolates the causal effect of **information flow induced by network structure**, rather than strategic communication or payoff differences.
+The design isolates the causal effect of **information access induced by network structure**, rather than communication, messaging, or payoff differences.
 
 ---
 
 ## Research Question
 
-> **How do different static network topologies (Hub-and-Spoke vs Ring) affect belief updating and cooperative behaviour in a repeated public goods environment with uncertainty?**
+> **How do different static network structures (Ring vs Hub-and-Spoke) affect beliefs and cooperative behaviour in a repeated public goods setting with uncertainty?**
 
-This question is motivated by real-world systems (e.g. financial networks, organisations, supply chains) where information is often unevenly distributed due to network centralisation.
+This is motivated by real-world systems (e.g. organisations, financial networks, supply chains) where access to information is shaped by network centralisation.
 
 ---
 
 ## Core Design Principles
 
-The experiment follows four strict design principles:
-
-1. **Same game across treatments**
+1. **Same game across treatments**  
    All participants play the same repeated linear public goods game.
 
-2. **Static networks**
+2. **Static networks**  
    Network connections are fixed for the entire session.
 
-3. **Information differs, incentives do not**
-   Treatment variation affects *who observes whose information*, not payoffs or action spaces.
+3. **Information differs, incentives do not**  
+   Treatments affect *who sees which information*, not payoffs or available actions.
 
-4. **Mechanical information sharing**
-   Signals are shared automatically according to network rules; players cannot misreport or manipulate information.
-
-These principles ensure clean identification of network effects.
+4. **Mechanical information sharing**  
+   Information is shown automatically by the system; players cannot manipulate or misreport it.
 
 ---
 
 ## Game Environment
 
-* **Players per group:** 8
-* **Rounds:** 15 (fixed)
-* **Decision each round:**
-
-  * Contribute (binary)
-  * Do not contribute
+- **Players per group:** 8  
+- **Rounds:** 15  
+- **Decisions each round:**
+  - **Contribution amount:** continuous (0–20)
+  - **Belief report:** integer (0–100), non-incentivized, not shared
 
 ### Payoff Function
 
-Each round, payoffs are computed as:
 <img width="675" height="76" alt="image" src="https://github.com/user-attachments/assets/dfcf5c56-b6cc-4e30-8277-32138693ee43" />
 
+- MPCR depends on an unobserved state:
+  - **HIGH:** `MPCR_HIGH = 0.70`
+  - **LOW:** `MPCR_LOW  = 0.30`
 
-where:
-
-* alpha is the Marginal Per Capita Return (MPCR),
-* alpha depends on an unobserved state of the world.
+**Implementation detail:** Payoffs are computed using MPCR applied to total contributions, with correct handling of oTree currency types.
 
 ---
 
 ## Uncertainty and Information
 
-### Hidden State
+### Unobserved State
 
-* At the start of the experiment, Nature draws a state:
+- At the start of the experiment, the system selects a state: **HIGH** or **LOW** (equal probability).
+- The state remains **fixed across all rounds**.
+- The realised state is **never revealed** to participants.
 
-  * **HIGH** or **LOW** (50/50 prior)
-* The state remains **fixed across all rounds**.
-* MPCR is higher in the HIGH state and lower in the LOW state.
-* The realised state is **never revealed during the experiment**.
+### Messages (Signals)
 
-### Private Signals
-
-* Each round, every player receives a **private noisy signal** about the state.
-* Signals are:
-
-  * Informative but imperfect
-  * Independently drawn across players and rounds
+- In each round, players receive system-generated **HIGH / LOW** messages.
+- Players cannot change, hide, or manipulate these messages.
 
 ### Belief Elicitation
 
-* After observing signals, players report their belief (0–100) that the state is HIGH.
-* Beliefs are **not incentivised** and **not shared** with others.
+- After viewing messages, players report a belief (0–100) that the state is HIGH.
+- Beliefs **do not affect payoffs** and are **not shown** to other players.
 
 ---
 
 ## Network Treatments
 
-### 1. Ring Network (Decentralised)
+### 1) Ring Network (Decentralised)
 
-* Each player is connected to two neighbours (left and right).
-* In each round, players observe:
-
-  * Their own private signal
-  * Signals from their two neighbours
-* No player has global information access.
-
-This serves as the decentralised benchmark.
+- Each player is connected to two neighbours.
+- In each round, players see:
+  - their own message
+  - messages from their two neighbours
+- No player has access to everyone’s messages.
 
 ---
 
-### 2. Hub-and-Spoke Network (Centralised)
+### 2) Hub-and-Spoke Network (Centralised)
 
-* One player (Player 1) is designated as the **hub**.
-* All other players are **spokes**.
+- **Player 1** is the hub (central player).
+- All other players are spokes.
 
 **Information structure:**
 
-* **Hub observes:**
+- **Hub sees:** own message + all spokes’ messages  
+- **Spokes see:** own message + hub’s message (no other spokes)
 
-  * Their own signal
-  * All spokes’ signals (full information)
-
-* **Spokes observe:**
-
-  * Their own signal
-  * The hub’s signal
-  * *No signals from other spokes*
-
-There is **no spoke-to-spoke information flow**, direct or indirect.
-
-This creates a strict informational star network with a central bottleneck.
+There is no spoke-to-spoke information flow.
 
 ---
 
 ## Timing Within Each Round
 
-1. Private signal is drawn
-2. Signals are mechanically shared according to network structure
-3. Players:
+From **Round 2 onward**, each round proceeds as:
 
-   * Make a contribution decision
-   * Report their belief
-4. Payoffs are computed
-5. Minimal feedback is shown (no MPCR, no state, no histories)
+1. **Review previous round (private):** player sees own contribution + payoff from the previous round
+2. **Messages page:** messages are shown according to network structure
+3. **Decision page:** contribution amount + belief report
+4. **Payoffs computed**
+5. **Results page:** outcome shown (including a group contribution table)
+
+Round 1 begins directly with the messages page.
 
 ---
 
 ## Outcomes of Interest
 
-The experiment generates data on:
-
-* Contribution rates over time
-* Differences in cooperation between network structures
-* Belief accuracy and convergence
-* Speed of information aggregation
-* Behavioural differences between hub and peripheral players
+- Contribution behaviour over time
+- Differences in cooperation across network structures
+- Belief accuracy and belief dynamics
+- Speed of information aggregation
+- Differences between hub vs spokes (in hub-and-spoke)
 
 ---
 
 ## Implementation Notes
 
-* Implemented in **oTree**
-* Network structure is set **at session launch** via `SESSION_CONFIGS`
-* No endogenous network formation
-* No punishment, communication, or reputation mechanisms
-* Focus is on **information flow**, not strategic messaging
+- Implemented in **oTree**
+- Network structure is set at session launch via `SESSION_CONFIGS` (`network_type: 'ring'` or `'hub'`)
+- No communication, punishment, or reputation mechanisms
+- No endogenous network formation
+- Focus is on **information exposure**, not strategic messaging
 
 ---
 
 ## Repository Structure
 
-* `models.py` — core game logic, state, network information rules
-* `pages.py` — page flow and round timing
-* `templates/` — experiment UI (Instructions, Signals, Decision, Results)
-* `settings.py` — session configuration and treatment assignment
+- `models.py` — game logic, payoffs, network rules
+- `pages.py` — page flow and round timing
+- `templates/` — UI (Instructions, ReviewLastRound, ObserveSignals, Decide, Results)
+- `settings.py` — session configuration and treatment assignment
 
 ---
 
-## Collaboration Rules
+## Instructions Design
 
-* Contributors should work on **feature branches**
-* Direct pushes to `main` should be avoided
-* All changes should preserve:
-
-  * Identical incentives across treatments
-  * Static network structure
-  * Mechanical (non-strategic) information sharing
+- On-screen instructions are intentionally **brief and non-technical**.
+- A separate **Word document** is provided before the experiment with full details.
 
 ---
 
 ## Status
 
-This repository implements the **baseline experimental design** for the FYP.
-Extensions (e.g. strategic communication or misinformation) are intentionally excluded to maintain clean identification and feasibility.
+This repository implements the baseline experimental design for the FYP.
 
----
-
-
+The design is intentionally minimal to ensure:
+- participant clarity
+- clean identification
+- feasibility for lab/classroom deployment
+```
