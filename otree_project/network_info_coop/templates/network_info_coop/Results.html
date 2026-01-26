@@ -4,21 +4,21 @@
 <h3>Round {{ player.round_number }}: Results</h3>
 
 <p>Your contribution: <b>{{ your_contribution }}</b></p>
-<p>Total group contribution: <b>{{ total_contribution }}</b></p>
-<p>Your payoff this round: <b>{{ payoff }}</b></p>
+<p>Your payoff this round: <b>{{ your_payoff }}</b></p>
+<p>Your cumulative payoff (Rounds 1–{{ player.round_number }}): <b>{{ your_cum_payoff }}</b></p>
 
 <hr>
 
-<h5>Group contributions</h5>
+<h5>Group payoffs (this round)</h5>
 <table class="table table-sm">
   <thead>
     <tr>
       <th>Player</th>
-      <th>Contribution</th>
+      <th>Payoff</th>
     </tr>
   </thead>
   <tbody>
-    {% for row in contrib_rows %}
+    {% for row in payoff_rows %}
       <tr>
         <td>
           {% if row.is_you %}
@@ -27,7 +27,7 @@
             Player {{ row.pid }}
           {% endif %}
         </td>
-        <td><b>{{ row.contrib }}</b></td>
+        <td><b>{{ row.payoff }}</b></td>
       </tr>
     {% endfor %}
   </tbody>

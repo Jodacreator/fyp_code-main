@@ -173,3 +173,14 @@ class Player(BasePlayer):
             'signal': hub.signal
         })
         return observed
+    
+    def cumulative_payoff(self):
+        """
+        Cumulative payoff up to (and including) the most recent round
+        for which payoffs have been computed.
+        """
+        total = cu(0)
+        for pr in self.in_all_rounds():
+            if pr.payoff is not None:
+                total += pr.payoff
+        return total

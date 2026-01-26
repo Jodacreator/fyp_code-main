@@ -19,22 +19,18 @@ class Instructions(Page):
 
 
 class ReviewLastRound(Page):
-    """
-    Shows private feedback from the previous round at the START of each new round.
-    Displayed from Round 2 onward.
-    """
     def is_displayed(self):
         return self.round_number > 1
 
     def vars_for_template(self):
-        prev_p = self.player.in_round(self.round_number - 1)
-        prev_g = self.group.in_round(self.round_number - 1)
+        prev_round = self.round_number - 1
+        prev_p = self.player.in_round(prev_round)
 
         return dict(
-            prev_round=self.round_number - 1,
-            prev_contribution=prev_p.contribution,
+            prev_round=prev_round,
+            prev_contribution=prev_p.contribution,         # own only
             prev_payoff=prev_p.payoff,
-            prev_total_contribution=prev_g.total_contribution,  # optional
+            prev_cum_payoff=prev_p.cumulative_payoff(),    # cumulative up to prev_round
         )
 
 
@@ -77,19 +73,19 @@ class Results(Page):
         p = self.player
         g = self.group
 
-        contrib_rows = []
+        payoff_rows = []
         for pl in g.get_players():
-            contrib_rows.append(dict(
+            payoff_rows.append(dict(
                 pid=pl.id_in_group,
                 is_you=(pl.id_in_group == p.id_in_group),
-                contrib=pl.contribution
+                payoff=pl.payoff
             ))
 
         return dict(
-            your_contribution=p.contribution,
-            total_contribution=g.total_contribution,
-            payoff=p.payoff,
-            contrib_rows=contrib_rows,
+            your_contribution=p.contribution,          # still allowed: own contribution
+            your_payoff=p.payoff,                      # payoff this round
+            your_cum_payoff=p.cumulative_payoff(),      # cumulative payoff (incl this round)
+            payoff_rows=payoff_rows,
         )
 
 
