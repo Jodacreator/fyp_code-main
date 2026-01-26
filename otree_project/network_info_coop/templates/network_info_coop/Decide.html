@@ -1,0 +1,16 @@
+{% extends "global/Page.html" %}
+{% block content %}
+
+<h3>Round {{ player.round_number }}: Decision</h3>
+
+<p>
+  Endowment: <b>{{ endowment }}</b>.
+  Choose how much to contribute (between <b>{{ min_contrib }}</b> and <b>{{ max_contrib }}</b>),
+  and then report your belief.
+</p>
+
+{{ formfields }}
+
+<button class="btn btn-primary">Submit</button>
+
+{% endblock %}
