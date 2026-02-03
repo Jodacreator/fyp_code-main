@@ -1,0 +1,53 @@
+{% extends "global/Page.html" %}
+{% block content %}
+
+<h3>Comprehension Check</h3>
+
+<p class="text-muted">
+  Please answer all questions correctly to proceed. You may refer back to the instructions if needed.
+</p>
+
+{% formfield 'cq_payoff' %}
+{% if feedback.cq_payoff %}
+  <div class="alert alert-warning mt-2">
+    <b>Correct answer:</b> Option {{ feedback.cq_payoff.correct }}.<br>
+    {{ feedback.cq_payoff.expl }}
+  </div>
+{% endif %}
+
+{% formfield 'cq_mpcr' %}
+{% if feedback.cq_mpcr %}
+  <div class="alert alert-warning mt-2">
+    <b>Correct answer:</b> Option {{ feedback.cq_mpcr.correct }}.<br>
+    {{ feedback.cq_mpcr.expl }}
+  </div>
+{% endif %}
+
+{% formfield 'cq_network' %}
+{% if feedback.cq_network %}
+  <div class="alert alert-warning mt-2">
+    <b>Correct answer:</b> Option {{ feedback.cq_network.correct }}.<br>
+    {{ feedback.cq_network.expl }}
+  </div>
+{% endif %}
+
+{% formfield 'cq_belief' %}
+{% if feedback.cq_belief %}
+  <div class="alert alert-warning mt-2">
+    <b>Correct answer:</b> Option {{ feedback.cq_belief.correct }}.<br>
+    {{ feedback.cq_belief.expl }}
+  </div>
+{% endif %}
+
+{% formfield 'cq_state' %}
+{% if feedback.cq_state %}
+  <div class="alert alert-warning mt-2">
+    <b>Correct answer:</b> Option {{ feedback.cq_state.correct }}.<br>
+    {{ feedback.cq_state.expl }}
+  </div>
+{% endif %}
+
+<br>
+<button class="btn btn-primary">Continue</button>
+
+{% endblock %}

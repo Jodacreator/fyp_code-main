@@ -1,0 +1,69 @@
+{% extends "global/Page.html" %}
+{% load static %}
+{% block content %}
+
+<h3>Instructions</h3>
+
+<p>
+You will take part in a short decision-making activity with <b>{{ n }}</b> players.
+The activity lasts for <b>{{ num_rounds }}</b> rounds.
+</p>
+
+<hr>
+
+<h5>What happens in each round</h5>
+<ul>
+  <li>You will see some <b>HIGH / LOW signals</b> on your screen.</li>
+  <li>These signals are shown automatically by the system.</li>
+  <li>You will then choose how much to contribute to a shared financial project.</li>
+</ul>
+
+<h5>Whose signals you see</h5>
+<ul>
+  {% if network_type == 'ring' %}
+    <li>You see <b>your own</b> signal.</li>
+    <li>You also see the signals of <b>two other players</b> connected to you.</li>
+  {% else %}
+    <li>You see <b>your own</b> signal.</li>
+    <li>One player is randomly selected at the start to be the <b>Hub</b>, and stays the Hub for all rounds.</li>
+    <li>If you are <b>not</b> the Hub, you also see the <b>Hub’s</b> signal.</li>
+    <li>If you are the Hub, you see <b>everyone’s</b> signals.</li>
+  {% endif %}
+</ul>
+
+<hr>
+
+<h5>How earnings are calculated</h5>
+<ul>
+  <li>Each round you receive an endowment of <b>{{ endowment }}</b>.</li>
+  <li>You choose a contribution (0–20). Your payoff is:</li>
+</ul>
+
+<div style="margin: 10px 0; padding: 10px; background: #f8f9fa; border-left: 4px solid #28a745;">
+  <b>Payoff</b> = (Endowment − Your Contribution) + <b>MPCR</b> × (Total Group Contribution)
+</div>
+
+<ul>
+  <li><b>MPCR</b> is fixed for the entire session but can be either HIGH or a LOW value.</li>
+  <li>The HIGH/LOW state is chosen at the start and stays the same across all rounds.</li>
+</ul>
+
+<hr>
+
+<h5>Your decisions</h5>
+<ul>
+  <li><b>Contribution:</b> choose how much to contribute (from <b>{{ min_contrib }}</b> to <b>{{ max_contrib }}</b>).</li>
+  <li><b>Belief report:</b> use the slider (0–100) to indicate how likely you think the true state is <b>HIGH</b>. 0 means you are certain the state is LOW, and 100 means you are certain it is HIGH.</li>
+</ul>
+
+<div style="margin: 12px 0; padding: 10px; background: #f8f9fa; border-left: 4px solid #6c757d;">
+  Your belief report does <b>not</b> affect your earnings and is <b>not</b> shown to other players.
+</div>
+
+<p>
+You will see your result at the end of each round.
+</p>
+
+<button class="btn btn-primary">Continue</button>
+
+{% endblock %}
