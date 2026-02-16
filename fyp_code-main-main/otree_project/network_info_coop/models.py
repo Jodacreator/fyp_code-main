@@ -78,17 +78,18 @@ class Group(BaseGroup):
 
     def compute_payoffs(self):
         players = self.get_players()
-        self.total_contribution = sum(p.contribution for p in players)
 
-        # IMPORTANT: multiply as float first, then convert once to Currency
-        total_float = float(self.total_contribution)
-
+        total = cu(0)
         for p in players:
-            p.payoff = (
-                C.ENDOWMENT
-                - p.contribution
-                + cu(self.mpcr * total_float)
-            )
+            if p.contribution is None:
+                p.contribution = C.MIN_CONTRIBUTION
+            total += p.contribution
+
+        self.total_contribution = total
+
+        total_float = float(total)
+        for p in players:
+            p.payoff = C.ENDOWMENT - p.contribution + cu(self.mpcr * total_float)
 
 
 class Player(BasePlayer):
