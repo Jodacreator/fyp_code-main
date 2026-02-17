@@ -165,6 +165,12 @@ class Results(Page):
             contribution_rows=contribution_rows,
         )
 
+class End(Page):
+    """Shown only after the final round."""
+    
+    def is_displayed(self):
+        return self.round_number == C.NUM_ROUNDS
+
 
 page_sequence = [
     Instructions,
@@ -173,4 +179,5 @@ page_sequence = [
     Decide,
     ResultsWaitPage,
     Results,
+    End,
 ]
