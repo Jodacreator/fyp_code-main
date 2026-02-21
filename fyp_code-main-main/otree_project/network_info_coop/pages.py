@@ -40,8 +40,8 @@ class Comprehension(Page):
     def error_message(self, values):
         # Answer key: field -> correct choice number + explanation
         key = {
-            'cq_payoff': dict(correct=1, expl="Payoff = Endowment − your contribution + MPCR × (total group contribution)."),
-            'cq_mpcr': dict(correct=3, expl="MPCR depends on the hidden HIGH/LOW state chosen at the start, not on choices or belief."),
+            'cq_payoff': dict(correct=1, expl="Payoff = Endowment − your contribution + State Multiplier × (total group contribution)."),
+            'cq_mpcr': dict(correct=3, expl="State Multiplier depends on the hidden HIGH/LOW state chosen at the start, not on choices or belief."),
             'cq_state': dict(correct=2, expl="The hidden state is fixed for all rounds once chosen."),
             'cq_network': dict(correct=3, expl="You observe your own signal and only the signals of players you are connected to."),
             'cq_belief': dict(correct=4, expl="Belief is recorded for research but does not affect payoffs and is not shared."),
@@ -163,7 +163,14 @@ class Results(Page):
             your_payoff=p.payoff,
             your_cum_payoff=p.cumulative_payoff(),
             contribution_rows=contribution_rows,
+
+            # add these for the network diagram on Results.html
+            network_type=g.network_type,
+            hub_id=g.hub_id,                # used only if hub-and-spoke
+            pid=p.id_in_group,              # to label "You"
+            n=C.PLAYERS_PER_GROUP,          # number of players to draw
         )
+                
 
 class End(Page):
     """Shown only after the final round."""

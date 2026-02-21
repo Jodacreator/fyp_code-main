@@ -99,16 +99,16 @@ class Player(BasePlayer):
     cq_payoff = models.IntegerField(
         label="How is your payoff calculated each round?",
         choices=[
-            [1, "Endowment − my contribution + MPCR × (total group contribution)"],
+            [1, "Endowment − my contribution + State Multiplier × (total group contribution)"],
             [2, "Endowment + my contribution"],
-            [3, "MPCR × my own contribution only"],
+            [3, "State Multiplier × my own contribution only"],
             [4, "My payoff is random"],
         ],
         widget=widgets.RadioSelect
     )
 
     cq_mpcr = models.IntegerField(
-        label="What determines whether MPCR is HIGH or LOW?",
+        label="What determines whether State Multiplier is HIGH or LOW?",
         choices=[
             [1, "Your belief report"],
             [2, "Majority of players contributing"],

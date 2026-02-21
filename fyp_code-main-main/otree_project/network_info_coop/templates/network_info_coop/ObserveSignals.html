@@ -4,11 +4,11 @@
 <h3>Round {{ player.round_number }}: Signals</h3>
 
 <p>
-  <b>Network structure:</b>
+  <b>Interaction structure:</b>
   {% if network_type == 'hub' %}
-    Hub-and-Spoke Network
+    One <b>central player</b> is connected to all other players.
   {% else %}
-    Ring Network
+    Each player is connected to two other players.
   {% endif %}
 </p>
 
@@ -49,11 +49,11 @@
     z-index: 5; /* above lines */
   }
 
-  /* Hub even higher so it never gets crossed */
-  .node.hub {
-    background: #ffd9d9;
-    border-color: #c53030;
-    color: #742a2a;
+  /* Central player highlighted */
+  .node.central {
+    background: #ffe9cc;
+    border-color: #b7791f;
+    color: #7b341e;
     z-index: 10;
   }
 
@@ -69,7 +69,7 @@
     font-size: 12px;
     font-weight: 600;
     color: #555;
-    width: 90px;
+    width: 110px;
     text-align: center;
     z-index: 11;
   }
@@ -79,9 +79,9 @@
   <div class="net-wrap" id="net"></div>
 
   <div class="text-muted" style="margin-top: 6px;">
-    Your node ID: <b>{{ pid }}</b>
+    Your player ID: <b>{{ pid }}</b>
     {% if network_type == 'hub' %}
-      &nbsp;|&nbsp; Hub: <b>{{ hub_id }}</b>
+      &nbsp;|&nbsp; Central player: <b>{{ hub_id }}</b>
     {% endif %}
   </div>
 </div>
@@ -90,24 +90,29 @@
 (function(){
   const networkType = "{{ network_type }}";
   const pid = Number("{{ pid }}");
-  const hubId = Number("{{ hub_id }}");
+  const rawCentralId = Number("{{ hub_id }}");
   const n = 8;
 
+  // Fallback safety: if central id is missing/0, default to 1
+  const centralId = (Number.isFinite(rawCentralId) && rawCentralId >= 1) ? rawCentralId : 1;
+
   const wrap = document.getElementById("net");
+  if (!wrap) return;
+
   const W = wrap.clientWidth || 420;
   const H = wrap.clientHeight || 300;
   const cx = W/2, cy = H/2;
 
-  function addNode(id, x, y, isHub=false){
+  function addNode(id, x, y, isCentral=false){
     const d = document.createElement("div");
-    d.className = "node" + (isHub ? " hub" : "") + (id===pid ? " you" : "");
+    d.className = "node" + (isCentral ? " central" : "") + (id===pid ? " you" : "");
     d.style.left = (x-29) + "px";
     d.style.top  = (y-29) + "px";
     d.textContent = String(id);
 
     const role = document.createElement("div");
     role.className = "role";
-    role.textContent = isHub ? "Hub" : "Node";
+    role.textContent = isCentral ? "Central player" : "Player";
     d.appendChild(role);
 
     wrap.appendChild(d);
@@ -127,34 +132,43 @@
     wrap.appendChild(l);
   }
 
-  if(networkType === "hub"){
-    // Draw spokes first (lines behind), then nodes
-    const r = Math.min(W, H) * 0.32;
-    const others = [];
-    for(let i=1;i<=n;i++) if(i!==hubId) others.push(i);
+  // Clear previous
+  wrap.innerHTML = "";
 
-    // Precompute spoke coords
-    const spokeCoords = [];
-    others.forEach((id, idx) => {
-      const theta = (2*Math.PI*idx)/others.length - Math.PI/2;
-      const x = cx + r*Math.cos(theta);
-      const y = cy + r*Math.sin(theta);
-      spokeCoords.push({id, x, y});
-    });
+  if(networkType === "hub"){
+    // ✅ Symmetric central-player structure: outer players placed evenly by index
+    const r = Math.min(W, H) * 0.34; // slightly larger spacing than before
+
+    const outer = [];
+    for(let i=1;i<=n;i++) if(i!==centralId) outer.push(i);
+
+    const outerCount = outer.length;
+
+    function posOuter(idx){
+      const theta = (2*Math.PI*idx)/outerCount - Math.PI/2;
+      return { x: cx + r*Math.cos(theta), y: cy + r*Math.sin(theta) };
+    }
 
     // Lines first
-    spokeCoords.forEach(s => addLine(cx, cy, s.x, s.y));
+    outer.forEach((id, idx) => {
+      const p = posOuter(idx);
+      addLine(cx, cy, p.x, p.y);
+    });
 
-    // Hub node last (always on top)
-    addNode(hubId, cx, cy, true);
+    // Central player last (always on top)
+    addNode(centralId, cx, cy, true);
 
-    // Spokes
-    spokeCoords.forEach(s => addNode(s.id, s.x, s.y, false));
+    // Outer players
+    outer.forEach((id, idx) => {
+      const p = posOuter(idx);
+      addNode(id, p.x, p.y, false);
+    });
 
   } else {
-    // Ring around
-    const r = Math.min(W, H) * 0.35;
+    // Circular structure (each player connected to two others)
+    const r = Math.min(W, H) * 0.36;
     const coords = {};
+
     for(let id=1; id<=n; id++){
       const theta = (2*Math.PI*(id-1))/n - Math.PI/2;
       coords[id] = [cx + r*Math.cos(theta), cy + r*Math.sin(theta)];
@@ -166,7 +180,7 @@
       addLine(coords[id][0], coords[id][1], coords[next][0], coords[next][1]);
     }
 
-    // Nodes after (above lines)
+    // Players after
     for(let id=1; id<=n; id++){
       addNode(id, coords[id][0], coords[id][1], false);
     }
@@ -177,14 +191,14 @@
 <div style="margin: 12px 0; padding: 10px; background: #f8f9fa; border-left: 4px solid #007bff;">
   <b>Your role:</b>
   {% if is_hub %}
-    <span style="color:#007bff;">Central player (Hub)</span>
+    <span style="color:#007bff;">Central player</span>
   {% else %}
-    <span style="color:#555;">Connected player (Node)</span>
+    <span style="color:#555;">Player</span>
   {% endif %}
 </div>
 
 <p class="text-muted" style="margin-bottom: 10px;">
-  The signals below are automatically shown to you by the network.
+  The signals below are automatically shown to you based on the interaction structure.
   No player can change, hide, or manipulate these signals.
 </p>
 

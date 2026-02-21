@@ -5,54 +5,63 @@
 
 <div class="row">
   <div class="col-md-8">
+
     <p>
       Endowment: <b>{{ endowment }}</b>.
       Choose how much to contribute (between <b>{{ min_contrib }}</b> and <b>{{ max_contrib }}</b>),
       then report your belief.
     </p>
 
+    <!-- Neutral structure reminder (no jargon) -->
+    <div class="alert alert-secondary" style="margin: 10px 0;">
+      <b>Reminder:</b>
+      {% if network_type == 'hub' %}
+        One <b>central player</b> is connected to all other players (fixed for all rounds).
+      {% else %}
+        Each player is connected to two other players (fixed for all rounds).
+      {% endif %}
+    </div>
+
     <!-- Timer -->
     <div id="timer_box" class="alert alert-info" style="margin: 10px 0;">
       <b>Time remaining:</b> <span id="time_left">60</span> seconds
     </div>
 
+    <!-- Contribution -->
     {{ formfield 'contribution' }}
 
     <hr>
 
+    <!-- Belief slider -->
     <label for="belief_slider"><b>Belief report (0–100)</b></label>
-
-    <div class="text-muted" style="font-size: 0.9em; margin-bottom: 8px;">
-      Indicate how likely you think the true state is <b>HIGH</b>.
-      A value of 0 means you are certain the state is LOW, and 100 means you are certain it is HIGH.
-      <br>
-      This belief report does <b>not</b> affect your payoff and is <b>not</b> shared with other players.
+    <div class="text-muted" style="margin-bottom: 6px;">
+      0 = certain the state is LOW, 100 = certain the state is HIGH.
+      (This does <b>not</b> affect earnings and is <b>not</b> shown to other players.)
     </div>
 
-    <div style="display:flex; align-items:center; gap:12px; margin: 6px 0 16px;">
-      <input
-        id="belief_slider"
-        type="range"
-        name="belief"
-        min="0"
-        max="100"
-        value="{{ belief_value }}"
-        style="flex:1;"
-        oninput="document.getElementById('belief_value').textContent = this.value;"
-      >
-      <span style="min-width: 40px; text-align:right;">
-        <b id="belief_value">{{ belief_value }}</b>
-      </span>
+    <input
+      type="range"
+      id="belief_slider"
+      name="belief"
+      min="0"
+      max="100"
+      value="{{ belief_value }}"
+      class="form-range"
+      oninput="document.getElementById('belief_value').textContent = this.value;"
+      style="width: 100%;"
+    >
+    <div style="margin-top: 6px;">
+      Current value: <b><span id="belief_value">{{ belief_value }}</span></b>
     </div>
 
-    <button class="btn btn-primary">Submit</button>
   </div>
 
+  <!-- Right panel: histories -->
   <div class="col-md-4">
-    <div style="position: sticky; top: 12px; padding: 10px; border: 1px solid #e5e5e5; border-radius: 8px; background: #fff;">
 
-      <!-- Signals history -->
-      <b>Signals history</b>
+    <!-- Signals you saw (history) -->
+    <div style="position: sticky; top: 12px; padding: 10px; border: 1px solid #e5e5e5; border-radius: 8px; background: #fff; margin-bottom: 10px;">
+      <b>Signals you have seen</b>
       <div class="text-muted" style="font-size: 0.9em;">Rounds 1–{{ player.round_number }}</div>
       <hr style="margin: 8px 0;">
 
@@ -61,25 +70,34 @@
           <summary>Round {{ h.round }}</summary>
           <ul style="margin: 6px 0 0 18px; padding: 0;">
             {% for item in h.observed %}
-              <li><b>{{ item.source }}</b>: {{ item.signal }}</li>
+              {# Optional: rename any remaining sources if they include "Hub" #}
+              <li>
+                <b>
+                  {% if 'Hub' in item.source %}
+                    Central player
+                  {% else %}
+                    {{ item.source }}
+                  {% endif %}
+                </b>: {{ item.signal }}
+              </li>
             {% endfor %}
           </ul>
         </details>
       {% endfor %}
+    </div>
 
-      <hr style="margin: 12px 0;">
-
-      <!-- Contribution history (all players) -->
-      <b>Contribution history</b>
-      <div class="text-muted" style="font-size: 0.9em;">All players (previous rounds)</div>
+    <!-- Group contribution history -->
+    <div style="position: sticky; top: 360px; padding: 10px; border: 1px solid #e5e5e5; border-radius: 8px; background: #fff;">
+      <b>Group contributions so far</b>
+      <div class="text-muted" style="font-size: 0.9em;">Completed rounds</div>
       <hr style="margin: 8px 0;">
 
-      {% if contrib_history_all %}
-        {% for h in contrib_history_all %}
-          <details style="margin-bottom: 8px;">
-            <summary>Round {{ h.round }}</summary>
+      {% if contrib_history_all and contrib_history_all|length > 0 %}
+        {% for block in contrib_history_all %}
+          <details style="margin-bottom: 6px;">
+            <summary>Round {{ block.round }}</summary>
 
-            <table class="table table-sm" style="margin-top: 6px; margin-bottom: 0;">
+            <table class="table table-sm" style="margin-top: 6px;">
               <thead>
                 <tr>
                   <th>Player</th>
@@ -87,22 +105,16 @@
                 </tr>
               </thead>
               <tbody>
-                {% for row in h.rows %}
+                {% for row in block.rows %}
                   <tr>
                     <td>
                       {% if row.is_you %}
-                        <b>You ({{ row.pid }})</b>
+                        <b>Player {{ row.pid }} (You)</b>
                       {% else %}
                         Player {{ row.pid }}
                       {% endif %}
                     </td>
-                    <td>
-                      {% if row.contribution == None %}
-                        -
-                      {% else %}
-                        <b>{{ row.contribution }}</b>
-                      {% endif %}
-                    </td>
+                    <td>{{ row.contribution }}</td>
                   </tr>
                 {% endfor %}
               </tbody>
@@ -110,52 +122,32 @@
           </details>
         {% endfor %}
       {% else %}
-        <div class="text-muted">No previous rounds yet.</div>
+        <div class="text-muted">No completed rounds yet.</div>
       {% endif %}
-
     </div>
+
   </div>
 </div>
 
-<script>
-  // Ensure the displayed value matches the slider on initial page load
-  (function () {
-    const s = document.getElementById('belief_slider');
-    const v = document.getElementById('belief_value');
-    if (s && v) v.textContent = s.value;
-  })();
-</script>
+<button class="btn btn-primary">Continue</button>
 
 <script>
-  // Visible countdown timer (client-side) + auto-submit at 0
+  // simple 60s countdown display (oTree timeout handled server-side)
   (function () {
-    const TOTAL = 60; // keep in sync with timeout_seconds
-    let t = TOTAL;
-
     const el = document.getElementById('time_left');
-    const box = document.getElementById('timer_box');
-    const form = document.querySelector('form');
+    if (!el) return;
 
-    function updateStyle(tt){
-      if (!box) return;
-      box.classList.remove('alert-info', 'alert-warning', 'alert-danger');
-      if (tt <= 5) box.classList.add('alert-danger');
-      else if (tt <= 15) box.classList.add('alert-warning');
-      else box.classList.add('alert-info');
-    }
+    let t = parseInt(el.textContent, 10);
+    if (!Number.isFinite(t)) t = 60;
 
-    updateStyle(t);
-    if (el) el.textContent = t;
-
-    const timer = setInterval(function () {
+    const timer = setInterval(() => {
       t -= 1;
-      if (el) el.textContent = t;
-      updateStyle(t);
-
       if (t <= 0) {
+        el.textContent = '0';
         clearInterval(timer);
-        if (form) form.submit();
+        return;
       }
+      el.textContent = String(t);
     }, 1000);
   })();
 </script>

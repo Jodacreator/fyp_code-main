@@ -3,6 +3,25 @@
 
 <h3>Round {{ player.round_number }}: Results</h3>
 
+<!-- Network structure card -->
+<div class="card mb-3">
+  <div class="card-body">
+    <h5 class="card-title" style="margin-bottom: 10px;">Interaction structure (fixed for all rounds)</h5>
+
+    <div class="text-muted" style="margin-bottom: 10px;">
+      {% if network_type == 'hub' %}
+        This group has one <b>central player</b> connected to all other players.
+      {% else %}
+        Each player is connected to two other players.
+      {% endif %}
+    </div>
+
+    <div style="width: 100%; overflow-x: auto;">
+      <svg id="netSvg" width="520" height="240" viewBox="0 0 520 240"></svg>
+    </div>
+  </div>
+</div>
+
 <p>Your contribution: <b>{{ your_contribution }}</b></p>
 <p>Your payoff this round: <b>{{ your_payoff }}</b></p>
 <p>Your cumulative payoff (Rounds 1–{{ player.round_number }}): <b>{{ your_cum_payoff }}</b></p>
@@ -34,5 +53,137 @@
 </table>
 
 <button class="btn btn-primary">Next</button>
+
+<script>
+(function () {
+    const networkType = "{{ network_type }}";
+    const n = parseInt("{{ n }}", 10) || 8;
+    const centralId = parseInt("{{ hub_id }}", 10) || 0;
+    const youId = parseInt("{{ pid }}", 10) || 0;
+
+    const svg = document.getElementById('netSvg');
+    if (!svg) return;
+
+    const NS = 'http://www.w3.org/2000/svg';
+    const cx = 260, cy = 120;
+    const R = 95; // slightly larger for cleaner spacing
+
+    function el(name, attrs) {
+        const e = document.createElementNS(NS, name);
+        for (const k in attrs) e.setAttribute(k, attrs[k]);
+        return e;
+    }
+
+    function addText(x, y, txt, opts = {}) {
+        const t = el('text', Object.assign({
+            x, y,
+            'text-anchor': 'middle',
+            'dominant-baseline': 'middle',
+            'font-size': '14'
+        }, opts));
+        t.textContent = txt;
+        svg.appendChild(t);
+    }
+
+    function addNode(x, y, id, isCentral, isYou) {
+        const fill = isCentral ? '#ffe9cc' : '#eaf2ff';
+        const stroke = isYou ? '#111' : '#4a86e8';
+        const strokeW = isYou ? '3' : '2';
+
+        svg.appendChild(el('circle', {
+            cx: x, cy: y, r: 20,
+            fill: fill,
+            stroke: stroke,
+            'stroke-width': strokeW
+        }));
+
+        addText(x, y, String(id), { 'font-weight': '700' });
+
+        if (isCentral)
+            addText(x, y + 28, 'Central Player', { 'font-size': '12', fill: '#aa6600' });
+
+        if (isYou)
+            addText(x, y - 28, 'You', { 'font-size': '12', fill: '#111' });
+    }
+
+    // For ring: place players 1..n evenly
+    function posRingById(id) {
+        const angle = (-Math.PI / 2) + (2 * Math.PI) * ((id - 1) / n);
+        return {
+            x: cx + R * Math.cos(angle),
+            y: cy + R * Math.sin(angle)
+        };
+    }
+
+    // For central structure: place outer players evenly by index (0..outerCount-1)
+    function posOuterByIndex(idx, outerCount) {
+        const angle = (-Math.PI / 2) + (2 * Math.PI) * (idx / outerCount);
+        return {
+            x: cx + R * Math.cos(angle),
+            y: cy + R * Math.sin(angle)
+        };
+    }
+
+    while (svg.firstChild) svg.removeChild(svg.firstChild);
+
+    if (networkType === 'hub') {
+        // ✅ Symmetric central-player structure:
+        // Build list of all outer players (excluding centralId), then place them by index.
+        const outer = [];
+        for (let i = 1; i <= n; i++) {
+            if (i !== centralId) outer.push(i);
+        }
+
+        const outerCount = outer.length;
+
+        // Lines first
+        outer.forEach((id, idx) => {
+            const p = posOuterByIndex(idx, outerCount);
+            svg.appendChild(el('line', {
+                x1: cx, y1: cy,
+                x2: p.x, y2: p.y,
+                stroke: '#999',
+                'stroke-width': '2'
+            }));
+        });
+
+        // Outer nodes
+        outer.forEach((id, idx) => {
+            const p = posOuterByIndex(idx, outerCount);
+            addNode(p.x, p.y, id, false, id === youId);
+        });
+
+        // Central node last (on top)
+        const centerShown = centralId || 1;
+        addNode(cx, cy, centerShown, true, centerShown === youId);
+
+    } else {
+        // Circular structure (each player connected to two others)
+        const positions = {};
+        for (let i = 1; i <= n; i++) {
+            positions[i] = posRingById(i);
+        }
+
+        // Lines first
+        for (let i = 1; i <= n; i++) {
+            const j = (i === n) ? 1 : (i + 1);
+            const a = positions[i];
+            const b = positions[j];
+            svg.appendChild(el('line', {
+                x1: a.x, y1: a.y,
+                x2: b.x, y2: b.y,
+                stroke: '#999',
+                'stroke-width': '2'
+            }));
+        }
+
+        // Nodes after
+        for (let i = 1; i <= n; i++) {
+            const p = positions[i];
+            addNode(p.x, p.y, i, false, i === youId);
+        }
+    }
+})();
+</script>
 
 {% endblock %}

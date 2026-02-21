@@ -20,32 +20,32 @@ The activity lasts for a fixed number of rounds.
 
 <h5>Whose signals you see</h5>
 <ul>
+  <li>You always see <b>your own</b> signal.</li>
+
   {% if network_type == 'ring' %}
-    <li>You see <b>your own</b> signal.</li>
-    <li>You also see the signals of <b>two other players</b> connected to you.</li>
+    <li>You also see the signals of <b>two other players</b> you are connected to.</li>
   {% else %}
-    <li>You see <b>your own</b> signal.</li>
-    <li>One player is randomly selected at the start to be the <b>Hub</b>, and stays the Hub for all rounds.</li>
-    <li>If you are <b>not</b> the Hub, you also see the <b>Hub’s</b> signal.</li>
-    <li>If you are the Hub, you see <b>everyone’s</b> signals.</li>
+    <li>At the start, one player is randomly selected to be the <b>central player</b> and stays the central player for all rounds.</li>
+    <li>If you are <b>not</b> the central player, you also see the <b>central player’s</b> signal.</li>
+    <li>If you are the central player, you see <b>everyone’s</b> signals.</li>
   {% endif %}
 </ul>
 
 <hr>
 
-<h5>How earnings are calculated</h5>
+<h5>How in-game earnings are calculated</h5>
 <ul>
   <li>Each round you receive an endowment of <b>{{ endowment }}</b>.</li>
   <li>You choose a contribution (0–20). Your payoff is:</li>
 </ul>
 
 <div style="margin: 10px 0; padding: 10px; background: #f8f9fa; border-left: 4px solid #28a745;">
-  <b>Payoff</b> = (Endowment − Your Contribution) + <b>MPCR</b> × (Total Group Contribution)
+  <b>Payoff</b> = (Endowment − Your Contribution) + <b>State Multiplier</b> × (Total Group Contribution)
 </div>
 
 <ul>
-  <li><b>MPCR</b> is fixed for the entire session but can be either HIGH or a LOW value.</li>
-  <li>The HIGH/LOW state is chosen at the start and stays the same across all rounds.</li>
+  <li><b>State Multiplier</b> is fixed for the entire session but can be either a HIGH or a LOW value.</li>
+  <li>The HIGH (0.7)/LOW (0.3) value is chosen at the start and stays the same across all rounds.</li>
 </ul>
 
 <hr>
@@ -53,7 +53,8 @@ The activity lasts for a fixed number of rounds.
 <h5>Your decisions</h5>
 <ul>
   <li><b>Contribution:</b> choose how much to contribute (from <b>{{ min_contrib }}</b> to <b>{{ max_contrib }}</b>).</li>
-  <li><b>Belief report:</b> use the slider (0–100) to indicate how likely you think the true state is <b>HIGH</b>. 0 means you are certain the state is LOW, and 100 means you are certain it is HIGH.</li>
+  <li><b>Belief report:</b> use the slider (0–100) to indicate how likely you think the true state is <b>HIGH</b>.
+      0 means you are certain the state is LOW, and 100 means you are certain it is HIGH.</li>
 </ul>
 
 <div style="margin: 12px 0; padding: 10px; background: #f8f9fa; border-left: 4px solid #6c757d;">
