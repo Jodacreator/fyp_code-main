@@ -124,6 +124,11 @@ class Decide(Page):
             contrib_history_all=contrib_history_all,
             pid=self.player.id_in_group,
             network_type=self.group.network_type,
+
+            # ✅ add these for the diagram
+            hub_id=self.group.hub_id,          # central player id
+            n=C.PLAYERS_PER_GROUP,             # number of players (8)
+
             endowment=C.ENDOWMENT,
             min_contrib=C.MIN_CONTRIBUTION,
             max_contrib=C.MAX_CONTRIBUTION,
