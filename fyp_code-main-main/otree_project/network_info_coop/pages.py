@@ -121,6 +121,7 @@ class Decide(Page):
 
         return dict(
             signals_history=self.player.signals_history(),
+            current_round_signals=self.player.signals_observed_this_round(), 
             contrib_history_all=contrib_history_all,
             pid=self.player.id_in_group,
             network_type=self.group.network_type,
@@ -168,7 +169,6 @@ class Results(Page):
             your_payoff=p.payoff,
             your_cum_payoff=p.cumulative_payoff(),
             contribution_rows=contribution_rows,
-
             # add these for the network diagram on Results.html
             network_type=g.network_type,
             hub_id=g.hub_id,                # used only if hub-and-spoke

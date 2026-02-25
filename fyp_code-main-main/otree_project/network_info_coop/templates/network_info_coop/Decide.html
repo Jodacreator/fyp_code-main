@@ -54,6 +54,53 @@
       Current value: <b><span id="belief_value">{{ belief_value }}</span></b>
     </div>
 
+    <!-- ✅ Current Round Signals (Pill Badges) -->
+    <div style="margin-top: 15px; padding: 12px; border: 1px solid #dee2e6; border-radius: 8px; background-color: #f8f9fa;">
+      <div style="font-weight: 600; margin-bottom: 8px;">
+        Signals This Round (Round {{ player.round_number }})
+      </div>
+
+      {% if current_round_signals %}
+        <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+          {% for item in current_round_signals %}
+
+            {% if item.signal == "HIGH" %}
+              <span style="
+                padding: 6px 12px;
+                border-radius: 999px;
+                background-color: #d4edda;
+                color: #155724;
+                font-weight: 600;
+                font-size: 14px;">
+                {% if 'Hub' in item.source %}
+                  Central player
+                {% else %}
+                  {{ item.source }}
+                {% endif %}: HIGH
+              </span>
+            {% else %}
+              <span style="
+                padding: 6px 12px;
+                border-radius: 999px;
+                background-color: #f8d7da;
+                color: #721c24;
+                font-weight: 600;
+                font-size: 14px;">
+                {% if 'Hub' in item.source %}
+                  Central player
+                {% else %}
+                  {{ item.source }}
+                {% endif %}: LOW
+              </span>
+            {% endif %}
+
+          {% endfor %}
+        </div>
+      {% else %}
+        <div class="text-muted">No signals available.</div>
+      {% endif %}
+    </div>
+
   </div>
 
   <!-- Right panel: diagram + histories -->
